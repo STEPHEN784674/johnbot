@@ -1,29 +1,36 @@
-cat << 'EOF' > setup_and_run.sh
 #!/bin/bash
 
-echo "📦 Updating system..."
-sudo apt update -y && sudo apt upgrade -y
+# Move to script directory
+cd "$(dirname "$0")"
 
-echo "🐍 Installing Python and pip..."
-sudo apt install -y python3 python3-pip screen
+echo "🔄 Updating package list..."
+sudo apt update
 
-echo "📦 Installing required Python modules..."
-pip3 install --upgrade pip
-pip3 install python-telegram-bot nest_asyncio apscheduler
+echo "🐍 Installing Python 3.12 and venv..."
+sudo apt install -y software-properties-common
+sudo add-apt-repository -y ppa:deadsnakes/ppa
+sudo apt update
+sudo apt install -y python3.12 python3.12-venv python3.12-distutils curl
 
-echo "📁 Creating bot folder..."
-mkdir -p ~/telegrambot
-cd ~/telegrambot
+# Make python3.12 default
+sudo update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.12 1
+sudo update-alternatives --set python3 /usr/bin/python3.12
 
-echo "📄 Writing bot script..."
-cat << 'EOPY' > forwardbot.py
-# === Your entire forwardbot.py script goes here ===
-# Replace this placeholder with your actual working code
-print("🚀 Replace this line with your real bot script.")
-EOPY
+# Install pip for Python 3.12 if missing
+curl -sS https://bootstrap.pypa.io/get-pip.py | sudo python3.12
 
-echo "🚀 Launching bot in a screen session..."
-screen -dmS telegrambot python3 ~/telegrambot/forwardbot.py
+echo "📦 Creating virtual environment..."
+python3.12 -m venv venv || {
+    echo "❌ Failed to create virtualenv.";
+    exit 1;
+}
 
-echo "✅ Bot is now running in background screen session called 'telegrambot'"
-EOF
+echo "✅ Virtual environment created."
+
+echo "📥 Installing dependencies..."
+source venv/bin/activate
+pip install --upgrade pip
+pip install python-telegram-bot apscheduler nest_asyncio
+
+echo "🚀 Running bot..."
+python forwardbot.py
