@@ -15,10 +15,11 @@ import nest_asyncio
 nest_asyncio.apply()
 
 # === CONFIG ===
-BOT_TOKEN = "YOUR_BOT_TOKEN_HERE"   # Replace with your bot token
+BOT_TOKEN = "YOUR_BOT_TOKEN_HERE"   # 👈 Replace with your bot token
 SOURCE_CHAT_ID = -1002821810309
 CONFIG_FILE = "group_id.json"
 DEFAULT_INTERVAL = 600  # 10 minutes
+OWNER_ID = 7848024317   # 👈 Replace with your Telegram user ID
 
 last_message = None
 scheduler = AsyncIOScheduler()
@@ -82,19 +83,22 @@ async def handle_source(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 # === Helper: Admin Check ===
 async def is_admin(update: Update, context: ContextTypes.DEFAULT_TYPE) -> bool:
-    """Check if the user is an admin/creator of the current chat."""
+    """Allow only OWNER in private, admins/creator in groups."""
     user_id = update.effective_user.id
-    chat_id = update.effective_chat.id
+    chat = update.effective_chat
 
-    if update.effective_chat.type == "private":
-        return True  # In private chat, allow
+    if chat.type == "private":
+        return user_id == OWNER_ID   # Only OWNER can use in private chat
 
-    try:
-        member = await context.bot.get_chat_member(chat_id, user_id)
-        return member.status in ["administrator", "creator"]
-    except Exception as e:
-        print(f"❌ Error checking admin in chat {chat_id}: {e}")
-        return False
+    if chat.type in ["group", "supergroup"]:
+        try:
+            member = await context.bot.get_chat_member(chat.id, user_id)
+            return member.status in ["administrator", "creator"]
+        except Exception as e:
+            print(f"❌ Error checking admin in chat {chat.id}: {e}")
+            return False
+
+    return False
 
 
 # === Commands ===
