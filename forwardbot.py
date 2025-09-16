@@ -14,12 +14,14 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 import nest_asyncio
 nest_asyncio.apply()
 
+
 # === CONFIG ===
 BOT_TOKEN = "YOUR_BOT_TOKEN_HERE"   # 👈 Replace with your bot token
 SOURCE_CHAT_ID = -1002821810309
 CONFIG_FILE = "group_id.json"
 DEFAULT_INTERVAL = 600  # 10 minutes
 OWNER_ID = 7848024317   # 👈 Replace with your Telegram user ID
+ main
 
 last_message = None
 scheduler = AsyncIOScheduler()
@@ -81,6 +83,7 @@ async def handle_source(update: Update, context: ContextTypes.DEFAULT_TYPE):
         print("📩 New source message saved.")
 
 
+
 # === Helper: Admin Check ===
 async def is_admin(update: Update, context: ContextTypes.DEFAULT_TYPE) -> bool:
     """Allow only OWNER in private, admins/creator in groups."""
@@ -99,6 +102,7 @@ async def is_admin(update: Update, context: ContextTypes.DEFAULT_TYPE) -> bool:
             return False
 
     return False
+ main
 
 
 # === Commands ===
