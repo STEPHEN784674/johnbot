@@ -16,11 +16,11 @@ nest_asyncio.apply()
 
 
 # === CONFIG ===
-BOT_TOKEN = "YOUR_BOT_TOKEN_HERE"   # 👈 Replace with your bot token
-SOURCE_CHAT_ID = -1002821810309
+BOT_TOKEN = "8311015302:AAEv1HpYujqLTprTFqPu2O2JZZQ0PiTf6SY"   # 👈 Replace with your bot token
+SOURCE_CHAT_ID = -4921840824
 CONFIG_FILE = "group_id.json"
 DEFAULT_INTERVAL = 600  # 10 minutes
-OWNER_ID = 7848024317   # 👈 Replace with your Telegram user ID
+OWNER_ID = 1237991597   # 👈 Replace with your Telegram user ID
 
 last_message = None
 scheduler = AsyncIOScheduler()
@@ -208,3 +208,4 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
+
