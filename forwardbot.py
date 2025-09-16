@@ -14,13 +14,11 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 import nest_asyncio
 nest_asyncio.apply()
 
-
-# === CONFIG ===
 BOT_TOKEN = "8311015302:AAEv1HpYujqLTprTFqPu2O2JZZQ0PiTf6SY"   # 👈 Replace with your bot token
 SOURCE_CHAT_ID = -4921840824
 CONFIG_FILE = "group_id.json"
 DEFAULT_INTERVAL = 600  # 10 minutes
-OWNER_ID = 1237991597   # 👈 Replace with your Telegram user ID
+OWNER_ID = 1237991597   # 👈 Replace with your Telegram user ID   
 
 last_message = None
 scheduler = AsyncIOScheduler()
@@ -89,7 +87,7 @@ async def is_admin(update: Update, context: ContextTypes.DEFAULT_TYPE) -> bool:
     chat = update.effective_chat
 
     if chat.type == "private":
-        return user_id == OWNER_ID   # Only OWNER can use in private chat
+        return user_id == OWNER_ID  # Only OWNER can use in private chat
 
     if chat.type in ["group", "supergroup"]:
         try:
@@ -133,8 +131,7 @@ async def list_groups(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("No groups added yet.")
         return
 
-    msg = f"📋 Forwarding every {interval} seconds to:\n"
-    msg += "\n".join(f"➤ {gid}" for gid in groups)
+    msg = f"📋 Forwarding every {interval} seconds to:\n" + "\n".join(f"➤ {gid}" for gid in groups)
     await update.message.reply_text(msg)
 
 
@@ -157,7 +154,7 @@ async def set_interval(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     try:
         scheduler.remove_job("forwarder")
-    except:
+    except Exception:
         pass
 
     scheduler.add_job(
@@ -170,8 +167,19 @@ async def set_interval(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(f"✅ Forward interval set to {interval} seconds.")
 
 
-# === Catch unrecognized messages in private chat ===
+# === Catch any private DM ===
 async def log_all_private(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Reply to private DMs: allow OWNER; redirect others to buy/contact."""
+    user_id = update.effective_user.id
+    if user_id != OWNER_ID:
+        await update.message.reply_text(
+            "❌ You are not allowed to use this bot.\n\n"
+            "To buy, contact Owner: @Sarvesh492\n"
+            "Or buy from: @sarveshclouds_bot"
+        )
+        return
+
+    # If OWNER sends something unknown
     await update.message.reply_text("❓ Unknown command. Use /addgroup, /listgroups, /setinterval.")
 
 
@@ -180,13 +188,15 @@ async def main():
     print("🚀 Bot is starting...")
     app = Application.builder().token(BOT_TOKEN).build()
 
-    # Command handlers
+    # Command handlers (allowed in PM and Groups; gatekeeping happens inside is_admin)
     app.add_handler(CommandHandler("addgroup", add_group, filters=filters.ChatType.PRIVATE | filters.ChatType.GROUPS))
     app.add_handler(CommandHandler("listgroups", list_groups, filters=filters.ChatType.PRIVATE | filters.ChatType.GROUPS))
     app.add_handler(CommandHandler("setinterval", set_interval, filters=filters.ChatType.PRIVATE | filters.ChatType.GROUPS))
-    app.add_handler(MessageHandler(filters.ALL & filters.ChatType.PRIVATE, log_all_private))
 
-    # Forward source group messages
+    # Private DM fallback
+    app.add_handler(MessageHandler(filters.ChatType.PRIVATE & filters.ALL, log_all_private))
+
+    # Capture source messages from SOURCE_CHAT_ID
     app.add_handler(MessageHandler(filters.ALL, handle_source))
 
     # Start scheduler
@@ -208,4 +218,5 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
+
 
